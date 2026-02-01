@@ -28,10 +28,26 @@ class Model{
 
     }
 
+    public static function get($filter = []){
+        $objects = [];
+        $result = static::getResultFromSelect($filter, $columns = '*');
+        if($result) {
+            $class = get_called_class();
+            while($row = $result->fetch_assoc()){
+                array_push($objects, new $class($row));
+            }
+        }
+        return $objects;
+    }
 
-    public static function getSelect($filters = [], $columns = '*'){
-        $sql = "SELECT ${columns} FROM " . static::$tableName ;
-                return $sql;
+
+    public static function getResultFromSelect($filters = [], $columns = '*'){
+        $sql = "SELECT ${columns} FROM " . static::$tableName . static::getFilters($filters);
+        $result = Database::getResultFromSelect($sql);
+        if($result->num_rows === 0) {
+            return null;
+        }
+        else return  $result;
     }
 
     private static function getFilters($filters) {
